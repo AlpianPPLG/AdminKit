@@ -1,0 +1,253 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/lib/auth-context';
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  ShoppingCart,
+  FileText,
+  BarChart3,
+  Settings,
+  Menu,
+  ChevronDown,
+  ChevronRight,
+  User,
+  CreditCard,
+  History,
+  Heart,
+} from 'lucide-react';
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+  children?: NavItem[];
+  roles?: string[];
+}
+
+// Navigation items for different roles
+const adminNavigation: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Users',
+    href: '/dashboard/users',
+    icon: Users,
+    badge: '12',
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    title: 'Products',
+    href: '/dashboard/products',
+    icon: Package,
+    badge: '8',
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    title: 'Orders',
+    href: '/dashboard/orders',
+    icon: ShoppingCart,
+    badge: '5',
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    title: 'Media Library',
+    href: '/dashboard/media',
+    icon: FileText,
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    title: 'Reports',
+    href: '/dashboard/reports',
+    icon: BarChart3,
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+  {
+    title: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
+    roles: ['SUPER_ADMIN', 'ADMIN'],
+  },
+];
+
+const customerNavigation: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Browse Products',
+    href: '/catalog',
+    icon: Package,
+  },
+  {
+    title: 'Shopping Cart',
+    href: '/cart',
+    icon: ShoppingCart,
+  },
+  {
+    title: 'My Orders',
+    href: '/dashboard/my-orders',
+    icon: History,
+  },
+  {
+    title: 'Wishlist',
+    href: '/wishlist',
+    icon: Heart,
+  },
+  {
+    title: 'My Profile',
+    href: '/dashboard/profile',
+    icon: User,
+  },
+  {
+    title: 'Payment Methods',
+    href: '/dashboard/payment-methods',
+    icon: CreditCard,
+  },
+];
+
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
+  const pathname = usePathname();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { user } = useAuth();
+
+  const toggleExpanded = (itemTitle: string) => {
+    setExpandedItems(prev =>
+      prev.includes(itemTitle)
+        ? prev.filter(item => item !== itemTitle)
+        : [...prev, itemTitle]
+    );
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname.startsWith(href);
+  };
+
+  // Get navigation based on user role
+  const getNavigation = () => {
+    if (!user) return [];
+    
+    if (user.role === 'CUSTOMER') {
+      return customerNavigation;
+    } else {
+      return adminNavigation;
+    }
+  };
+
+  const navigation = getNavigation();
+
+  const NavItem = ({ item, level = 0 }: { item: NavItem; level?: number }) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.includes(item.title);
+    const active = isActive(item.href);
+
+    return (
+      <div>
+        <div className="flex items-center">
+          {hasChildren ? (
+            <Button
+              variant="ghost"
+              className={cn(
+                'w-full justify-start h-9 px-3 text-sm font-medium',
+                level > 0 && 'ml-4',
+                active && 'bg-accent text-accent-foreground'
+              )}
+              onClick={() => toggleExpanded(item.title)}
+            >
+              <item.icon className="mr-3 h-4 w-4" />
+              {item.title}
+              {item.badge && (
+                <Badge variant="secondary" className="ml-auto">
+                  {item.badge}
+                </Badge>
+              )}
+              {isExpanded ? (
+                <ChevronDown className="ml-auto h-4 w-4" />
+              ) : (
+                <ChevronRight className="ml-auto h-4 w-4" />
+              )}
+            </Button>
+          ) : (
+            <Link href={item.href}>
+              <Button
+                variant="ghost"
+                className={cn(
+                  'w-full justify-start h-9 px-3 text-sm font-medium',
+                  level > 0 && 'ml-4',
+                  active && 'bg-accent text-accent-foreground'
+                )}
+              >
+                <item.icon className="mr-3 h-4 w-4" />
+                {item.title}
+                {item.badge && (
+                  <Badge variant="secondary" className="ml-auto">
+                    {item.badge}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
+          )}
+        </div>
+        {hasChildren && isExpanded && (
+          <div className="mt-1 space-y-1">
+            {item.children?.map((child) => (
+              <NavItem key={child.href} item={child} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={cn('flex h-full flex-col bg-card', className)}>
+      <div className="flex h-16 items-center border-b px-6">
+        <h1 className="text-xl font-bold">AdminKit Pro</h1>
+      </div>
+      <nav className="flex-1 space-y-2 p-4">
+        {navigation.map((item) => (
+          <NavItem key={item.href} item={item} />
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+export function MobileSidebar() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size="icon" className="md:hidden">
+          <Menu className="h-4 w-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="p-0 w-64">
+        <Sidebar />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
