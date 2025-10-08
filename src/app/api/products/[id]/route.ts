@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { updateProductSchema } from '@/lib/validations';
@@ -5,10 +6,10 @@ import { updateProductSchema } from '@/lib/validations';
 // GET /api/products/[id] - Get product by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const [products] = await pool.execute(
       'SELECT * FROM products WHERE id = ?',
@@ -39,10 +40,10 @@ export async function GET(
 // PUT /api/products/[id] - Update product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     
     // Validate input
@@ -131,10 +132,10 @@ export async function PUT(
 // DELETE /api/products/[id] - Delete product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if product exists
     const [existingProducts] = await pool.execute(

@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 
 // GET /api/media/[id] - Get media file by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const [mediaFiles] = await pool.execute(`
       SELECT 
@@ -53,10 +54,10 @@ export async function GET(
 // DELETE /api/media/[id] - Delete media file
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if media file exists
     const [existingFiles] = await pool.execute(

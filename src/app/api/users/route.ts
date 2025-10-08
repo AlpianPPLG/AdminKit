@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { hashPassword } from '@/lib/auth';

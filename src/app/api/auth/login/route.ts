@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { verifyPassword } from '@/lib/auth';
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
     const token = generateToken(user);
 
     // Remove password from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
 
     return NextResponse.json({

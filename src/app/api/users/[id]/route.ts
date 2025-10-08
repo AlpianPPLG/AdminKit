@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { hashPassword } from '@/lib/auth';
@@ -6,10 +7,10 @@ import { updateUserSchema } from '@/lib/validations';
 // GET /api/users/[id] - Get user by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const [users] = await pool.execute(
       'SELECT id, name, email, role, avatar_url, created_at, updated_at FROM users WHERE id = ?',
@@ -40,10 +41,10 @@ export async function GET(
 // PUT /api/users/[id] - Update user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     
     // Validate input
@@ -148,10 +149,10 @@ export async function PUT(
 // DELETE /api/users/[id] - Delete user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Check if user exists
     const [existingUsers] = await pool.execute(

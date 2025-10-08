@@ -106,7 +106,7 @@ function CustomerDashboard() {
           Welcome back!
         </h2>
         <p className="text-blue-700 dark:text-blue-300 mt-2">
-          Here's what's happening with your account today.
+          Here&aposs;s what&aposs;s happening with your account today.
         </p>
       </div>
 

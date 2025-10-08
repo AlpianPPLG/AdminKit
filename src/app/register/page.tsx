@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createUserSchema, type CreateUserInput } from '@/lib/validations';
+import { createUserSchema } from '@/lib/validations';
 import { Eye, EyeOff, Loader2, Shield, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -52,8 +53,6 @@ export default function RegisterPage() {
       role: 'CUSTOMER',
     },
   });
-
-  const password = watch('password');
 
   const onSubmit = async (data: RegisterInput) => {
     if (data.password !== data.confirmPassword) {
@@ -123,7 +122,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold">What you'll get:</h3>
+            <h3 className="text-xl font-semibold">What you&apos;ll get:</h3>
             {features.map((feature, index) => (
               <div key={index} className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -293,4 +292,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

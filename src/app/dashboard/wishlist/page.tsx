@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -59,7 +60,7 @@ const mockWishlistItems = [
 ];
 
 export default function WishlistPage() {
-  const { user } = useAuth();
+  useAuth();
   const [wishlistItems, setWishlistItems] = useState(mockWishlistItems);
   const [searchTerm, setSearchTerm] = useState('');
 

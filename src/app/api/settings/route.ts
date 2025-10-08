@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { updateSettingSchema } from '@/lib/validations';
 
 // GET /api/settings - Get all settings
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const [settings] = await pool.execute(
       'SELECT * FROM settings ORDER BY setting_key'

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -17,12 +17,11 @@ import {
 } from '@/components/ui/table';
 import { useAuth } from '@/lib/auth-context';
 import { useOrders } from '@/lib/orders-context';
-import { Search, Package, Eye, Calendar, DollarSign, ShoppingCart, Heart, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search, Package, Eye, Calendar, DollarSign, ShoppingCart, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function MyOrdersPage() {
-  const { user } = useAuth();
+  useAuth();
   const { orders, loading } = useOrders();
   const [searchTerm, setSearchTerm] = useState('');
 

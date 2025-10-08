@@ -61,6 +61,7 @@ export function PaymentMethodProvider({ children }: { children: ReactNode }) {
   // Load payment methods when user changes
   useEffect(() => {
     fetchPaymentMethods();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const addPaymentMethod = async (data: Omit<PaymentMethod, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {

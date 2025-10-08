@@ -7,31 +7,17 @@ import { useCart } from '@/lib/cart-context';
 import { useOrders } from '@/lib/orders-context';
 import { usePaymentMethods } from '@/lib/payment-methods-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CreditCard, MapPin, User, Phone, Mail, CheckCircle, Plus, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, MapPin, CheckCircle, Plus, Shield } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock_quantity: number;
-  image_url: string;
-}
-
-interface CartItem {
-  product: Product;
-  quantity: number;
-}
 
 interface CheckoutForm {
   shippingAddress: string;
@@ -47,7 +33,7 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const { cartItems, clearCart } = useCart();
   const { createOrder } = useOrders();
-  const { paymentMethods, loading: paymentMethodsLoading } = usePaymentMethods();
+  const { paymentMethods } = usePaymentMethods();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);

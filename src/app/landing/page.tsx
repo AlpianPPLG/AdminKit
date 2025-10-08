@@ -2,11 +2,10 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowRight, 
-  CheckCircle, 
   Users, 
   Package, 
   ShoppingCart, 
@@ -14,9 +13,7 @@ import {
   FileText, 
   Settings,
   Shield,
-  Zap,
-  Star
-} from 'lucide-react';
+  Zap} from 'lucide-react';
 
 export default function LandingPage() {
   const features = [
@@ -198,4 +195,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

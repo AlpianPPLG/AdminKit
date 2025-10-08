@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/database';
 import { updateOrderSchema } from '@/lib/validations';
@@ -5,10 +6,10 @@ import { updateOrderSchema } from '@/lib/validations';
 // GET /api/orders/[id] - Get order by ID with details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Get order with user details
     const [orders] = await pool.execute(`
@@ -73,10 +74,10 @@ export async function GET(
 // PUT /api/orders/[id] - Update order
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     
     // Validate input

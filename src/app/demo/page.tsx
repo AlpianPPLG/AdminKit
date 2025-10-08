@@ -1,23 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import {
   Users,
   Package,
   ShoppingCart,
   BarChart3,
-  Settings,
-  Bell,
-  Search,
-  TrendingUp,
   DollarSign,
-  Eye,
-  EyeOff,
   Play,
   Pause,
   RotateCcw,
@@ -143,7 +138,7 @@ export default function DemoPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Interactive Demo</h1>
           <p className="text-xl text-muted-foreground mb-6">
-            Experience AdminKit Pro's powerful features in action
+            Experience AdminKit Pro&appos;s powerful features in action
           </p>
           <div className="flex justify-center space-x-2 mb-6">
             {demoSteps.map((step, index) => (

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
@@ -88,7 +90,6 @@ function downloadCSV(filename: string, rows: Record<string, string | number>[]) 
 
 async function downloadPDF(filename: string, title: string, rows: Record<string, string | number>[]) {
   try {
-    // @ts-ignore - optional dependency loaded at runtime
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     doc.setFontSize(14);

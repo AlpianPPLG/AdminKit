@@ -83,6 +83,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   // Load orders when user changes
   useEffect(() => {
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const createOrder = async (orderData: {
