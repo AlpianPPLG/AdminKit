@@ -2,6 +2,24 @@
 
 A comprehensive, modern, and professional admin dashboard built with Next.js 15, React 19, TypeScript, and ShadCN UI. This enterprise-grade solution provides a modular architecture for managing users, products, orders, media files, reports, and system settings.
 
+## 📚 Documentation
+
+**Complete documentation is available in the [docs](./docs) folder. Start with [docs/index.md](./docs/index.md) for the main documentation index:**
+
+- [docs/index.md](./docs/index.md) - Main documentation index
+- [docs/README.md](./docs/README.md) - Comprehensive overview of the application
+- [docs/API.md](./docs/API.md) - Detailed API documentation
+- [docs/DATABASE.md](./docs/DATABASE.md) - Database schema and structure
+- [docs/MODULES.md](./docs/MODULES.md) - Detailed module documentation
+- [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) - Development guidelines and best practices
+- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) - Deployment instructions for various platforms
+- [docs/SUMMARY.md](./docs/SUMMARY.md) - Summary of all documentation files
+
+Also see these important files in the root directory:
+- [FEATURES.md](./FEATURES.md) - Feature overview and sample data
+- [SETUP.md](./SETUP.md) - Quick setup guide
+- [FITUR_BELUM_BERFUNGSI.md](./FITUR_BELUM_BERFUNGSI.md) - List of incomplete features
+
 ## 🚀 Features
 
 ### Core Modules
