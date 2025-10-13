@@ -6,6 +6,7 @@ import { KPICard } from '@/components/dashboard/kpi-card';
 import { AnalyticsChart } from '@/components/dashboard/analytics-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { useAuth } from '@/lib/auth-context';
+import React from 'react';
 import {
   Users,
   Package,
@@ -21,34 +22,54 @@ import {
 
 // Admin Dashboard Component
 function AdminDashboard() {
+  const [loading, setLoading] = React.useState(true);
+  const [overview, setOverview] = React.useState<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number; avgOrderValue?: number; avgOrderValueChangePct?: number } | null>(null);
+  const [charts, setCharts] = React.useState<{ monthlyRevenue: { month: string; revenue: number }[]; monthlyOrders: { month: string; orders: number }[]; topProducts: { id: string; name: string; price: number; total_sold: number }[] } | null>(null);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        const json = await res.json();
+        if (json?.success) {
+          setOverview(json.data.overview);
+          setCharts(json.data.charts);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Total Users"
-          value="2,350"
+          value={overview?.totalUsers ?? '—'}
           change={{ value: 20.1, type: 'increase' }}
           icon={Users}
           description="Active users this month"
         />
         <KPICard
           title="Total Revenue"
-          value="Rp 45,231,890"
+          value={overview ? `Rp ${Number(overview.totalRevenue).toLocaleString('id-ID')}` : '—'}
           change={{ value: 12.5, type: 'increase' }}
           icon={DollarSign}
           description="Revenue this month"
         />
         <KPICard
           title="Products"
-          value="1,234"
+          value={overview?.totalProducts ?? '—'}
           change={{ value: 5.2, type: 'increase' }}
           icon={Package}
           description="Total products in catalog"
         />
         <KPICard
           title="Orders"
-          value="573"
+          value={overview?.totalOrders ?? '—'}
           change={{ value: 2.1, type: 'decrease' }}
           icon={ShoppingCart}
           description="Orders this month"
@@ -58,7 +79,7 @@ function AdminDashboard() {
       {/* Charts and Activity */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <AnalyticsChart />
+          <AnalyticsChart monthlyRevenue={charts?.monthlyRevenue} monthlyOrders={charts?.monthlyOrders} topProducts={charts?.topProducts} />
         </div>
         <div>
           <RecentActivity />
@@ -85,10 +106,13 @@ function AdminDashboard() {
         />
         <KPICard
           title="Avg. Order Value"
-          value="Rp 1,234,567"
-          change={{ value: 8.7, type: 'increase' }}
+          value={overview ? `Rp ${Number(overview.avgOrderValue || 0).toLocaleString('id-ID')}` : '—'}
+          change={{
+            value: Number(Math.abs(overview?.avgOrderValueChangePct ?? 0).toFixed(1)),
+            type: (overview?.avgOrderValueChangePct ?? 0) >= 0 ? 'increase' : 'decrease',
+          }}
           icon={DollarSign}
-          description="Average order value"
+          description="Average order value (this month)"
           className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900"
         />
       </div>

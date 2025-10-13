@@ -17,16 +17,17 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from 'recharts';
 
-const salesData = [
-  { name: 'Jan', value: 4000, orders: 24 },
-  { name: 'Feb', value: 3000, orders: 13 },
-  { name: 'Mar', value: 2000, orders: 98 },
-  { name: 'Apr', value: 2780, orders: 39 },
-  { name: 'May', value: 1890, orders: 48 },
-  { name: 'Jun', value: 2390, orders: 38 },
-  { name: 'Jul', value: 3490, orders: 43 },
+const defaultSalesData = [
+  { name: 'Jan', value: 0, orders: 0 },
+  { name: 'Feb', value: 0, orders: 0 },
+  { name: 'Mar', value: 0, orders: 0 },
+  { name: 'Apr', value: 0, orders: 0 },
+  { name: 'May', value: 0, orders: 0 },
+  { name: 'Jun', value: 0, orders: 0 },
+  { name: 'Jul', value: 0, orders: 0 },
 ];
 
 const userData = [
@@ -39,17 +40,34 @@ const userData = [
   { name: 'Jul', users: 349, newUsers: 430 },
 ];
 
-const productData = [
-  { name: 'Laptop Pro', value: 400, color: '#0088FE' },
-  { name: 'Wireless Mouse', value: 300, color: '#00C49F' },
-  { name: 'Keyboard', value: 300, color: '#FFBB28' },
-  { name: 'Monitor', value: 200, color: '#FF8042' },
-  { name: 'Headphones', value: 100, color: '#8884D8' },
+const defaultProductData = [
+  { name: '—', value: 0, color: '#0088FE' },
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#f97316', '#a78bfa', '#f472b6'];
 
-export function AnalyticsChart() {
+interface AnalyticsChartProps {
+  monthlyRevenue?: { month: string; revenue: number }[];
+  monthlyOrders?: { month: string; orders: number }[];
+  topProducts?: { id: string; name: string; price: number; total_sold: number }[];
+}
+
+export function AnalyticsChart({ monthlyRevenue, monthlyOrders, topProducts }: AnalyticsChartProps) {
+  const salesData = (monthlyRevenue && monthlyRevenue.length > 0
+    ? monthlyRevenue
+    : []
+  ).map((m) => ({ name: m.month, value: Number(m.revenue) || 0, orders: 0 })) || defaultSalesData;
+
+  const ordersData = (monthlyOrders && monthlyOrders.length > 0
+    ? monthlyOrders
+    : []
+  ).map((m) => ({ name: m.month, orders: Number(m.orders) || 0 })) as { name: string; orders: number }[];
+
+  const productData = (topProducts && topProducts.length > 0
+    ? topProducts
+    : []
+  ).map((p) => ({ name: p.name, value: Number(p.total_sold) || 0, color: '#8884d8' })) || defaultProductData;
+
   return (
     <Card>
       <CardHeader>
@@ -112,12 +130,12 @@ export function AnalyticsChart() {
           <TabsContent value="orders" className="space-y-4">
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData}>
+                <BarChart data={ordersData?.length ? ordersData : [{ name: '—', orders: 0 }]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="orders" fill="#8884d8" />
+                  <Bar dataKey="orders" fill="#60a5fa" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -132,17 +150,15 @@ export function AnalyticsChart() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    label={(props: any) => `${props.name} ${(props.percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
+                    outerRadius={90}
                     dataKey="value"
                   >
                     {productData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip formatter={(value: number) => [`${value}`, 'Total Sold']} />
+                  <Legend verticalAlign="bottom" height={24} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

@@ -12,6 +12,7 @@ import {
   Settings,
   AlertCircle,
 } from 'lucide-react';
+import React from 'react';
 
 interface ActivityItem {
   id: string;
@@ -25,56 +26,8 @@ interface ActivityItem {
   type: 'user' | 'product' | 'order' | 'file' | 'system' | 'alert';
 }
 
-const mockActivities: ActivityItem[] = [
-  {
-    id: '1',
-    user: { name: 'John Doe', avatar: '/avatars/john.jpg' },
-    action: 'created a new',
-    target: 'product',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    type: 'product',
-  },
-  {
-    id: '2',
-    user: { name: 'Jane Smith', avatar: '/avatars/jane.jpg' },
-    action: 'placed an',
-    target: 'order #1234',
-    timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-    type: 'order',
-  },
-  {
-    id: '3',
-    user: { name: 'Admin', avatar: '/avatars/admin.jpg' },
-    action: 'uploaded a new',
-    target: 'file',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    type: 'file',
-  },
-  {
-    id: '4',
-    user: { name: 'System', avatar: undefined },
-    action: 'detected low stock for',
-    target: 'Laptop Pro 14 inch',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-    type: 'alert',
-  },
-  {
-    id: '5',
-    user: { name: 'Mike Johnson', avatar: '/avatars/mike.jpg' },
-    action: 'registered as a new',
-    target: 'user',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    type: 'user',
-  },
-  {
-    id: '6',
-    user: { name: 'Admin', avatar: '/avatars/admin.jpg' },
-    action: 'updated system',
-    target: 'settings',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-    type: 'system',
-  },
-];
+// fetched from /api/dashboard/activity
+const mockActivities: ActivityItem[] = [];
 
 const getActivityIcon = (type: string) => {
   switch (type) {
@@ -115,6 +68,29 @@ const getActivityColor = (type: string) => {
 };
 
 export function RecentActivity() {
+  const [activities, setActivities] = React.useState<ActivityItem[]>(mockActivities);
+  React.useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('/api/dashboard/activity');
+        const json = await res.json();
+        if (json?.success) {
+          const mapped: ActivityItem[] = (json.data as any[]).map((a) => ({
+            id: String(a.id),
+            user: { name: a.user?.name || 'User', avatar: a.user?.avatar_url },
+            action: a.action,
+            target: a.details || '',
+            timestamp: new Date(a.created_at),
+            type: inferTypeFromAction(a.action),
+          }));
+          setActivities(mapped);
+        }
+      } catch (e) {
+        // ignore, keep defaults
+      }
+    };
+    fetchActivities();
+  }, []);
   return (
     <Card>
       <CardHeader>
@@ -122,7 +98,7 @@ export function RecentActivity() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {mockActivities.map((activity) => {
+          {activities.map((activity) => {
             const Icon = getActivityIcon(activity.type);
             const colorClass = getActivityColor(activity.type);
             
@@ -143,16 +119,18 @@ export function RecentActivity() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium text-foreground">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {activity.user.name}
                     </p>
-                    <span className="text-sm text-muted-foreground">
-                      {activity.action}
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      {activity.target}
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                      {activity.action.replace(/_/g, ' ')}
                     </Badge>
+                    {activity.target && (
+                      <span className="text-sm text-muted-foreground truncate max-w-[220px]">
+                        {activity.target}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2 mt-1">
                     <Icon className={`h-3 w-3 ${colorClass}`} />
@@ -170,3 +148,11 @@ export function RecentActivity() {
   );
 }
 
+function inferTypeFromAction(action: string): ActivityItem['type'] {
+  const a = (action || '').toUpperCase();
+  if (a.includes('ORDER')) return 'order';
+  if (a.includes('PRODUCT')) return 'product';
+  if (a.includes('LOGIN') || a.includes('USER') || a.includes('REGISTER')) return 'user';
+  if (a.includes('FILE') || a.includes('UPLOAD')) return 'file';
+  return 'system';
+}

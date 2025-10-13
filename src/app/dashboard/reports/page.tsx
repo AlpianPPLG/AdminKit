@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -34,44 +34,27 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  Legend,
 } from 'recharts';
 import { Download, FileText, TrendingUp, Users, Package, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, subDays } from 'date-fns';
 
-// Mock data for demonstration
-const salesData = [
-  { name: 'Jan', sales: 4000, orders: 24, users: 100 },
-  { name: 'Feb', sales: 3000, orders: 13, users: 80 },
-  { name: 'Mar', sales: 2000, orders: 98, users: 120 },
-  { name: 'Apr', sales: 2780, orders: 39, users: 90 },
-  { name: 'May', sales: 1890, orders: 48, users: 110 },
-  { name: 'Jun', sales: 2390, orders: 38, users: 95 },
-  { name: 'Jul', sales: 3490, orders: 43, users: 130 },
-];
+// Colors for product chart
+const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#f97316', '#a78bfa', '#f472b6'];
 
-const productData = [
-  { name: 'Laptop Pro', value: 400, color: '#0088FE' },
-  { name: 'Wireless Mouse', value: 300, color: '#00C49F' },
-  { name: 'Keyboard', value: 300, color: '#FFBB28' },
-  { name: 'Monitor', value: 200, color: '#FF8042' },
-  { name: 'Headphones', value: 100, color: '#8884D8' },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-// Helpers to build datasets by report type
-function getDataset(type: string) {
+// Helpers to build datasets for export (built from live state later)
+function buildDataset(type: string, options: { revenue: any[]; orders: any[]; users: any[]; products: any[] }) {
   switch (type) {
     case 'users':
-      return salesData.map(d => ({ Month: d.name, Users: d.users }));
+      return options.users.map(d => ({ Month: d.name, Users: d.users }));
     case 'products':
-      return productData.map(d => ({ Product: d.name, Value: d.value }));
+      return options.products.map(d => ({ Product: d.name, Value: d.value }));
     case 'orders':
-      return salesData.map(d => ({ Month: d.name, Orders: d.orders }));
+      return options.orders.map(d => ({ Month: d.name, Orders: d.orders }));
     case 'sales':
     default:
-      return salesData.map(d => ({ Month: d.name, Sales: d.sales }));
+      return options.revenue.map(d => ({ Month: d.name, Sales: d.sales }));
   }
 }
 
@@ -127,6 +110,30 @@ async function downloadPDF(filename: string, title: string, rows: Record<string,
 export default function ReportsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedReport, setSelectedReport] = useState<string>('sales');
+  const [loading, setLoading] = useState(true);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<{ name: string; sales: number }[]>([]);
+  const [monthlyOrders, setMonthlyOrders] = useState<{ name: string; orders: number }[]>([]);
+  const [monthlyUsers, setMonthlyUsers] = useState<{ name: string; users: number }[]>([]);
+  const [topProducts, setTopProducts] = useState<{ name: string; value: number }[]>([]);
+
+  useEffect(() => {
+    const fetchReportsData = async () => {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        const json = await res.json();
+        if (json?.success) {
+          const charts = json.data?.charts || {};
+          setMonthlyRevenue((charts.monthlyRevenue || []).map((m: any) => ({ name: m.month, sales: Number(m.revenue) || 0 })));
+          setMonthlyOrders((charts.monthlyOrders || []).map((m: any) => ({ name: m.month, orders: Number(m.orders) || 0 })));
+          setMonthlyUsers((charts.monthlyUsers || []).map((m: any) => ({ name: m.month, users: Number(m.users) || 0 })));
+          setTopProducts((charts.topProducts || []).map((p: any) => ({ name: p.name, value: Number(p.total_sold) || 0 })));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReportsData();
+  }, []);
 
   const form = useForm<ReportInput>({
     resolver: zodResolver(reportSchema),
@@ -139,7 +146,12 @@ export default function ReportsPage() {
   });
 
   const handleDownload = async (type: string, format: 'csv' | 'pdf') => {
-    const data = getDataset(type);
+    const data = buildDataset(type, {
+      revenue: monthlyRevenue,
+      orders: monthlyOrders,
+      users: monthlyUsers,
+      products: topProducts,
+    });
     const filename = `${type}-report.${format}`;
     if (!data.length) {
       toast.error('No data to export');
@@ -156,9 +168,12 @@ export default function ReportsPage() {
   const generateReport = async (data: ReportInput) => {
     setIsGenerating(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const dataset = getDataset(data.type);
+      const dataset = buildDataset(data.type, {
+        revenue: monthlyRevenue,
+        orders: monthlyOrders,
+        users: monthlyUsers,
+        products: topProducts,
+      });
       if (data.format === 'csv') {
         downloadCSV(`${data.type}-report.csv`, dataset);
       } else {
@@ -394,7 +409,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={salesData}>
+                    <AreaChart data={monthlyRevenue}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
@@ -419,25 +434,31 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={productData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {productData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {topProducts.length === 0 ? (
+                    <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">
+                      No product distribution data
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={topProducts}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={90}
+                          labelLine={false}
+                          dataKey="value"
+                        >
+                          {topProducts.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: number, _name, item) => [`${value}`, item && (item.payload as any).name]} />
+                        <Legend verticalAlign="bottom" height={24} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -450,7 +471,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={salesData}>
+                    <LineChart data={monthlyOrders.map((o, i) => ({ name: o.name, orders: o.orders, users: monthlyUsers[i]?.users ?? 0 }))}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
@@ -481,7 +502,7 @@ export default function ReportsPage() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={salesData}>
+                    <BarChart data={monthlyRevenue}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -128,6 +128,26 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { user } = useAuth();
+  const [counts, setCounts] = useState<{ users?: number; products?: number; orders?: number }>({});
+
+  useEffect(() => {
+    const loadCounts = async () => {
+      try {
+        const res = await fetch('/api/dashboard/stats');
+        const json = await res.json();
+        if (json?.success) {
+          setCounts({
+            users: json.data?.overview?.totalUsers,
+            products: json.data?.overview?.totalProducts,
+            orders: json.data?.overview?.totalOrders,
+          });
+        }
+      } catch (_) {
+        // ignore
+      }
+    };
+    loadCounts();
+  }, []);
 
   const toggleExpanded = (itemTitle: string) => {
     setExpandedItems(prev =>
@@ -162,6 +182,13 @@ export function Sidebar({ className }: SidebarProps) {
     const isExpanded = expandedItems.includes(item.title);
     const active = isActive(item.href);
 
+    const badgeText = (() => {
+      if (item.title === 'Users' && counts.users != null) return String(counts.users);
+      if (item.title === 'Products' && counts.products != null) return String(counts.products);
+      if (item.title === 'Orders' && counts.orders != null) return String(counts.orders);
+      return item.badge;
+    })();
+
     return (
       <div>
         <div className="flex items-center">
@@ -177,9 +204,9 @@ export function Sidebar({ className }: SidebarProps) {
             >
               <item.icon className="mr-3 h-4 w-4" />
               {item.title}
-              {item.badge && (
+              {badgeText && (
                 <Badge variant="secondary" className="ml-auto">
-                  {item.badge}
+                  {badgeText}
                 </Badge>
               )}
               {isExpanded ? (
@@ -200,9 +227,9 @@ export function Sidebar({ className }: SidebarProps) {
               >
                 <item.icon className="mr-3 h-4 w-4" />
                 {item.title}
-                {item.badge && (
+                {badgeText && (
                   <Badge variant="secondary" className="ml-auto">
-                    {item.badge}
+                    {badgeText}
                   </Badge>
                 )}
               </Button>

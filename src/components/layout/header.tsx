@@ -39,13 +39,7 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
 
   const handleProfileClick = () => {
     if (!user) return;
-    
-    if (user.role === 'CUSTOMER') {
-      router.push('/dashboard/profile');
-    } else {
-      // For admin users, redirect to user management or their own profile
-      router.push('/dashboard/users');
-    }
+    router.push('/dashboard/profile');
   };
 
   const handleSettingsClick = () => {

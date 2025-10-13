@@ -14,7 +14,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { updateUserSchema, type UpdateUserInput } from '@/lib/validations';
 import { useAuth } from '@/lib/auth-context';
-import { User, Mail, Calendar, Shield, Edit, Save, X } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Edit, Save, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -77,6 +77,28 @@ export default function ProfilePage() {
       email: user?.email || '',
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    const confirmDelete = window.confirm('Are you sure you want to delete this account? This action cannot be undone.');
+    if (!confirmDelete) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
+      const result = await response.json();
+      if (result.success) {
+        toast.success('Account deleted. Logging out...');
+        // Best-effort redirect to login
+        window.location.href = '/login';
+      } else {
+        toast.error(result.message || 'Failed to delete account');
+      }
+    } catch (e) {
+      toast.error('An error occurred while deleting account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -239,6 +261,18 @@ export default function ProfilePage() {
                   <p className="text-sm">
                     {format(new Date(user.updated_at), 'MMMM dd, yyyy')}
                   </p>
+                </div>
+              </div>
+              {/* Danger Zone */}
+              <div className="mt-6 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-red-600 dark:text-red-400">Danger Zone</p>
+                    <p className="text-xs text-muted-foreground">Delete this account permanently</p>
+                  </div>
+                  <Button variant="destructive" onClick={handleDeleteAccount} disabled={isLoading}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete Account
+                  </Button>
                 </div>
               </div>
             </CardContent>
