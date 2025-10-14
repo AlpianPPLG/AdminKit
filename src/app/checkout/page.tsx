@@ -18,6 +18,7 @@ import { ArrowLeft, CreditCard, MapPin, CheckCircle, Plus, Shield } from 'lucide
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useCurrency } from '@/lib/use-currency';
 
 interface CheckoutForm {
   shippingAddress: string;
@@ -31,6 +32,7 @@ interface CheckoutForm {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const { cartItems, clearCart } = useCart();
   const { createOrder } = useOrders();
   const { paymentMethods } = usePaymentMethods();
@@ -57,11 +59,7 @@ export default function CheckoutPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
+    return formatCurrency(price);
   };
 
   const getSubtotal = () => {

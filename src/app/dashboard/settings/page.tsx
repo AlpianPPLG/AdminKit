@@ -17,11 +17,42 @@ import { updateSettingSchema } from '@/lib/validations';
 import { Setting } from '@/lib/types';
 import { RefreshCw, Shield, User, Globe, Database } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSettings } from '@/lib/settings-context';
 
 export default function SettingsPage() {
+  const { refreshSettings } = useSettings();
   const [settings, setSettings] = useState<Setting[]>([]);
   const [, setIsLoading] = useState(true);
-  const [, setIsSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Local form states for each tab
+  const [generalForm, setGeneralForm] = useState({
+    site_name: '',
+    site_description: '',
+    default_currency: '',
+    maintenance_mode: false,
+  });
+  
+  const [appearanceForm, setAppearanceForm] = useState({
+    default_theme: '',
+    logo_url: '',
+    favicon_url: '',
+  });
+  
+  const [securityForm, setSecurityForm] = useState({
+    session_timeout: '',
+    max_login_attempts: '',
+    require_2fa: false,
+    password_policy: false,
+  });
+  
+  const [advancedForm, setAdvancedForm] = useState({
+    api_rate_limit: '',
+    cache_ttl: '',
+    backup_frequency: '',
+    debug_mode: false,
+    analytics_enabled: false,
+  });
 
   const form = useForm<{ setting_key: string; setting_value: string; }>({
     resolver: zodResolver(updateSettingSchema),
@@ -46,9 +77,49 @@ export default function SettingsPage() {
     }
   };
 
+  // Get setting value
+  const getSettingValue = (key: string) => {
+    const setting = settings.find(s => s.setting_key === key);
+    return setting?.setting_value || '';
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
+  
+  // Update local form states when settings are loaded
+  useEffect(() => {
+    if (settings.length > 0) {
+      setGeneralForm({
+        site_name: getSettingValue('site_name'),
+        site_description: getSettingValue('site_description'),
+        default_currency: getSettingValue('default_currency'),
+        maintenance_mode: getSettingValue('maintenance_mode') === 'true',
+      });
+      
+      setAppearanceForm({
+        default_theme: getSettingValue('default_theme'),
+        logo_url: getSettingValue('logo_url'),
+        favicon_url: getSettingValue('favicon_url'),
+      });
+      
+      setSecurityForm({
+        session_timeout: getSettingValue('session_timeout'),
+        max_login_attempts: getSettingValue('max_login_attempts'),
+        require_2fa: getSettingValue('require_2fa') === 'true',
+        password_policy: getSettingValue('password_policy') === 'true',
+      });
+      
+      setAdvancedForm({
+        api_rate_limit: getSettingValue('api_rate_limit'),
+        cache_ttl: getSettingValue('cache_ttl'),
+        backup_frequency: getSettingValue('backup_frequency'),
+        debug_mode: getSettingValue('debug_mode') === 'true',
+        analytics_enabled: getSettingValue('analytics_enabled') === 'true',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings]);
 
   // Update setting
   const updateSetting = async (key: string, value: string) => {
@@ -77,12 +148,6 @@ export default function SettingsPage() {
     }
   };
 
-  // Get setting value
-  const getSettingValue = (key: string) => {
-    const setting = settings.find(s => s.setting_key === key);
-    return setting?.setting_value || '';
-  };
-
   // Handle form submission
   const onSubmit = async (data: { setting_key: string; setting_value: string; }) => {
     setIsSaving(true);
@@ -93,9 +158,62 @@ export default function SettingsPage() {
     }
   };
 
-  // Handle switch change
-  const handleSwitchChange = (key: string, checked: boolean) => {
-    updateSetting(key, checked.toString());
+  // Save multiple settings at once
+  const saveSettings = async (settingsToUpdate: Record<string, string | boolean>) => {
+    setIsSaving(true);
+    try {
+      const promises = Object.entries(settingsToUpdate).map(([key, value]) => 
+        updateSetting(key, typeof value === 'boolean' ? value.toString() : value)
+      );
+      
+      await Promise.all(promises);
+      await refreshSettings(); // Refresh global settings context
+      toast.success('Settings saved successfully');
+    } catch (error) {
+      toast.error('Failed to save some settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Handle general settings save
+  const handleGeneralSave = async () => {
+    await saveSettings({
+      site_name: generalForm.site_name,
+      site_description: generalForm.site_description,
+      default_currency: generalForm.default_currency,
+      maintenance_mode: generalForm.maintenance_mode,
+    });
+  };
+  
+  // Handle appearance settings save
+  const handleAppearanceSave = async () => {
+    await saveSettings({
+      default_theme: appearanceForm.default_theme,
+      logo_url: appearanceForm.logo_url,
+      favicon_url: appearanceForm.favicon_url,
+    });
+  };
+  
+  // Handle security settings save
+  const handleSecuritySave = async () => {
+    await saveSettings({
+      session_timeout: securityForm.session_timeout,
+      max_login_attempts: securityForm.max_login_attempts,
+      require_2fa: securityForm.require_2fa,
+      password_policy: securityForm.password_policy,
+    });
+  };
+  
+  // Handle advanced settings save
+  const handleAdvancedSave = async () => {
+    await saveSettings({
+      api_rate_limit: advancedForm.api_rate_limit,
+      cache_ttl: advancedForm.cache_ttl,
+      backup_frequency: advancedForm.backup_frequency,
+      debug_mode: advancedForm.debug_mode,
+      analytics_enabled: advancedForm.analytics_enabled,
+    });
   };
 
   return (
@@ -128,8 +246,8 @@ export default function SettingsPage() {
                       <Label htmlFor="site_name">Site Name</Label>
                       <Input
                         id="site_name"
-                        value={getSettingValue('site_name')}
-                        onChange={(e) => updateSetting('site_name', e.target.value)}
+                        value={generalForm.site_name}
+                        onChange={(e) => setGeneralForm({...generalForm, site_name: e.target.value})}
                         placeholder="Enter site name"
                       />
                     </div>
@@ -137,8 +255,8 @@ export default function SettingsPage() {
                       <Label htmlFor="default_currency">Default Currency</Label>
                       <Input
                         id="default_currency"
-                        value={getSettingValue('default_currency')}
-                        onChange={(e) => updateSetting('default_currency', e.target.value)}
+                        value={generalForm.default_currency}
+                        onChange={(e) => setGeneralForm({...generalForm, default_currency: e.target.value})}
                         placeholder="e.g., IDR, USD, EUR"
                       />
                     </div>
@@ -147,8 +265,8 @@ export default function SettingsPage() {
                     <Label htmlFor="site_description">Site Description</Label>
                     <Textarea
                       id="site_description"
-                      value={getSettingValue('site_description')}
-                      onChange={(e) => updateSetting('site_description', e.target.value)}
+                      value={generalForm.site_description}
+                      onChange={(e) => setGeneralForm({...generalForm, site_description: e.target.value})}
                       placeholder="Enter site description"
                       rows={3}
                     />
@@ -156,10 +274,15 @@ export default function SettingsPage() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="maintenance_mode"
-                      checked={getSettingValue('maintenance_mode') === 'true'}
-                      onCheckedChange={(checked) => handleSwitchChange('maintenance_mode', checked)}
+                      checked={generalForm.maintenance_mode}
+                      onCheckedChange={(checked) => setGeneralForm({...generalForm, maintenance_mode: checked})}
                     />
                     <Label htmlFor="maintenance_mode">Maintenance Mode</Label>
+                  </div>
+                  <div className="pt-4">
+                    <Button onClick={handleGeneralSave} disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save General Settings'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -180,8 +303,8 @@ export default function SettingsPage() {
                       <Label htmlFor="theme">Default Theme</Label>
                       <select
                         id="theme"
-                        value={getSettingValue('default_theme')}
-                        onChange={(e) => updateSetting('default_theme', e.target.value)}
+                        value={appearanceForm.default_theme}
+                        onChange={(e) => setAppearanceForm({...appearanceForm, default_theme: e.target.value})}
                         className="w-full px-3 py-2 border border-input bg-background rounded-md"
                         title="Select default theme"
                         aria-label="Default Theme Selection"
@@ -195,8 +318,8 @@ export default function SettingsPage() {
                       <Label htmlFor="logo_url">Logo URL</Label>
                       <Input
                         id="logo_url"
-                        value={getSettingValue('logo_url')}
-                        onChange={(e) => updateSetting('logo_url', e.target.value)}
+                        value={appearanceForm.logo_url}
+                        onChange={(e) => setAppearanceForm({...appearanceForm, logo_url: e.target.value})}
                         placeholder="https://example.com/logo.png"
                       />
                     </div>
@@ -205,10 +328,15 @@ export default function SettingsPage() {
                     <Label htmlFor="favicon_url">Favicon URL</Label>
                     <Input
                       id="favicon_url"
-                      value={getSettingValue('favicon_url')}
-                      onChange={(e) => updateSetting('favicon_url', e.target.value)}
+                      value={appearanceForm.favicon_url}
+                      onChange={(e) => setAppearanceForm({...appearanceForm, favicon_url: e.target.value})}
                       placeholder="https://example.com/favicon.ico"
                     />
+                  </div>
+                  <div className="pt-4">
+                    <Button onClick={handleAppearanceSave} disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save Appearance Settings'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -230,8 +358,8 @@ export default function SettingsPage() {
                       <Input
                         id="session_timeout"
                         type="number"
-                        value={getSettingValue('session_timeout')}
-                        onChange={(e) => updateSetting('session_timeout', e.target.value)}
+                        value={securityForm.session_timeout}
+                        onChange={(e) => setSecurityForm({...securityForm, session_timeout: e.target.value})}
                         placeholder="30"
                       />
                     </div>
@@ -240,8 +368,8 @@ export default function SettingsPage() {
                       <Input
                         id="max_login_attempts"
                         type="number"
-                        value={getSettingValue('max_login_attempts')}
-                        onChange={(e) => updateSetting('max_login_attempts', e.target.value)}
+                        value={securityForm.max_login_attempts}
+                        onChange={(e) => setSecurityForm({...securityForm, max_login_attempts: e.target.value})}
                         placeholder="5"
                       />
                     </div>
@@ -249,18 +377,23 @@ export default function SettingsPage() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="require_2fa"
-                      checked={getSettingValue('require_2fa') === 'true'}
-                      onCheckedChange={(checked) => handleSwitchChange('require_2fa', checked)}
+                      checked={securityForm.require_2fa}
+                      onCheckedChange={(checked) => setSecurityForm({...securityForm, require_2fa: checked})}
                     />
                     <Label htmlFor="require_2fa">Require Two-Factor Authentication</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="password_policy"
-                      checked={getSettingValue('password_policy') === 'true'}
-                      onCheckedChange={(checked) => handleSwitchChange('password_policy', checked)}
+                      checked={securityForm.password_policy}
+                      onCheckedChange={(checked) => setSecurityForm({...securityForm, password_policy: checked})}
                     />
                     <Label htmlFor="password_policy">Enforce Password Policy</Label>
+                  </div>
+                  <div className="pt-4">
+                    <Button onClick={handleSecuritySave} disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save Security Settings'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -282,8 +415,8 @@ export default function SettingsPage() {
                       <Input
                         id="api_rate_limit"
                         type="number"
-                        value={getSettingValue('api_rate_limit')}
-                        onChange={(e) => updateSetting('api_rate_limit', e.target.value)}
+                        value={advancedForm.api_rate_limit}
+                        onChange={(e) => setAdvancedForm({...advancedForm, api_rate_limit: e.target.value})}
                         placeholder="100"
                       />
                     </div>
@@ -292,8 +425,8 @@ export default function SettingsPage() {
                       <Input
                         id="cache_ttl"
                         type="number"
-                        value={getSettingValue('cache_ttl')}
-                        onChange={(e) => updateSetting('cache_ttl', e.target.value)}
+                        value={advancedForm.cache_ttl}
+                        onChange={(e) => setAdvancedForm({...advancedForm, cache_ttl: e.target.value})}
                         placeholder="3600"
                       />
                     </div>
@@ -302,8 +435,8 @@ export default function SettingsPage() {
                     <Label htmlFor="backup_frequency">Backup Frequency</Label>
                     <select
                       id="backup_frequency"
-                      value={getSettingValue('backup_frequency')}
-                      onChange={(e) => updateSetting('backup_frequency', e.target.value)}
+                      value={advancedForm.backup_frequency}
+                      onChange={(e) => setAdvancedForm({...advancedForm, backup_frequency: e.target.value})}
                       className="w-full px-3 py-2 border border-input bg-background rounded-md"
                       title="Select backup frequency"
                       aria-label="Backup Frequency Selection"
@@ -317,18 +450,23 @@ export default function SettingsPage() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="debug_mode"
-                      checked={getSettingValue('debug_mode') === 'true'}
-                      onCheckedChange={(checked) => handleSwitchChange('debug_mode', checked)}
+                      checked={advancedForm.debug_mode}
+                      onCheckedChange={(checked) => setAdvancedForm({...advancedForm, debug_mode: checked})}
                     />
                     <Label htmlFor="debug_mode">Debug Mode</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="analytics_enabled"
-                      checked={getSettingValue('analytics_enabled') === 'true'}
-                      onCheckedChange={(checked) => handleSwitchChange('analytics_enabled', checked)}
+                      checked={advancedForm.analytics_enabled}
+                      onCheckedChange={(checked) => setAdvancedForm({...advancedForm, analytics_enabled: checked})}
                     />
                     <Label htmlFor="analytics_enabled">Enable Analytics</Label>
+                  </div>
+                  <div className="pt-4">
+                    <Button onClick={handleAdvancedSave} disabled={isSaving}>
+                      {isSaving ? 'Saving...' : 'Save Advanced Settings'}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

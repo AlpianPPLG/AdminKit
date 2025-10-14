@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/lib/auth-context';
+import { useSettings } from '@/lib/settings-context';
 import {
   LayoutDashboard,
   Users,
@@ -128,6 +129,7 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const { user } = useAuth();
+  const { getSetting } = useSettings();
   const [counts, setCounts] = useState<{ users?: number; products?: number; orders?: number }>({});
 
   useEffect(() => {
@@ -247,10 +249,12 @@ export function Sidebar({ className }: SidebarProps) {
     );
   };
 
+  const siteName = getSetting('site_name', 'AdminKit Pro');
+
   return (
     <div className={cn('flex h-full flex-col bg-card', className)}>
       <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">AdminKit Pro</h1>
+        <h1 className="text-xl font-bold">{siteName}</h1>
       </div>
       <nav className="flex-1 space-y-2 p-4">
         {navigation.map((item) => (

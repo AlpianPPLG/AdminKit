@@ -48,6 +48,7 @@ import { Order, OrderItem, User, Product } from '@/lib/types';
 import { Search, MoreHorizontal, Edit, Eye, Package, User as UserIcon, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useCurrency } from '@/lib/use-currency';
 
 interface OrderWithDetails extends Order {
   user?: User;
@@ -55,6 +56,7 @@ interface OrderWithDetails extends Order {
 }
 
 export default function OrdersPage() {
+  const { formatCurrency } = useCurrency();
   const [orders, setOrders] = useState<OrderWithDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -151,14 +153,6 @@ export default function OrdersPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Get status badge variant
   const getStatusBadgeVariant = (status: string) => {

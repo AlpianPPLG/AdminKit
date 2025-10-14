@@ -86,8 +86,8 @@ export const paginationSchema = z.object({
 
 // Report validation schemas
 export const reportSchema = z.object({
-  startDate: z.string().datetime('Invalid start date'),
-  endDate: z.string().datetime('Invalid end date'),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid start date'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid end date'),
   type: z.enum(['sales', 'users', 'products', 'orders']),
   format: z.enum(['csv', 'pdf']).optional(),
 });

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
+import { SettingsProvider } from "@/lib/settings-context";
 import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { PaymentMethodProvider } from "@/lib/payment-methods-context";
@@ -41,16 +42,18 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <PaymentMethodProvider>
-                  <OrderProvider>
-                    {children}
-                    <Toaster />
-                  </OrderProvider>
-                </PaymentMethodProvider>
-              </WishlistProvider>
-            </CartProvider>
+            <SettingsProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  <PaymentMethodProvider>
+                    <OrderProvider>
+                      {children}
+                      <Toaster />
+                    </OrderProvider>
+                  </PaymentMethodProvider>
+                </WishlistProvider>
+              </CartProvider>
+            </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

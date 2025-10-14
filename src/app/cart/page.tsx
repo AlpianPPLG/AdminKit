@@ -13,6 +13,7 @@ import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft, CreditCard } from 'lucide
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useCurrency } from '@/lib/use-currency';
 
 interface Product {
   id: string;
@@ -30,6 +31,7 @@ interface CartItem {
 
 export default function CartPage() {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -63,11 +65,7 @@ export default function CartPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
+    return formatCurrency(price);
   };
 
   const getSubtotal = () => {

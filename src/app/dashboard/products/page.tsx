@@ -43,8 +43,10 @@ import { Plus, Search, MoreHorizontal, Edit, Trash2, Package, Eye } from 'lucide
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import { useCurrency } from '@/lib/use-currency';
 
 export default function ProductsPage() {
+  const { formatCurrency } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -197,14 +199,6 @@ export default function ProductsPage() {
     (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Get stock status
   const getStockStatus = (quantity: number) => {

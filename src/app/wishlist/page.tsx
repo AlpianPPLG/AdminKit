@@ -11,6 +11,7 @@ import { Heart, ShoppingCart, Trash2, ArrowLeft, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useCurrency } from '@/lib/use-currency';
 
 interface Product {
   id: string;
@@ -26,6 +27,7 @@ interface Product {
 
 export default function WishlistPage() {
   const { user } = useAuth();
+  const { formatCurrency } = useCurrency();
   const { addToCart } = useCart();
   const { wishlist, removeFromWishlist } = useWishlist();
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,11 +79,7 @@ export default function WishlistPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
+    return formatCurrency(price);
   };
 
   const getWishlistProducts = () => {

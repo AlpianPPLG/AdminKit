@@ -18,6 +18,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useCurrency } from '@/lib/use-currency';
 
 // Mock data for demo
 const mockUsers = [
@@ -39,6 +40,7 @@ const mockOrders = [
 ];
 
 export default function DemoPage() {
+  const { formatCurrency: formatCurrencyHook } = useCurrency();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -71,11 +73,7 @@ export default function DemoPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return formatCurrencyHook(amount);
   };
 
   const getStatusBadge = (status: string) => {
