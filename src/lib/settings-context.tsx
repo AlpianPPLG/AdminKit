@@ -7,6 +7,7 @@ interface SettingsContextType {
   settings: Record<string, string>;
   isLoading: boolean;
   getSetting: (key: string, defaultValue?: string) => string;
+  updateSetting: (key: string, value: string) => Promise<void>;
   refreshSettings: () => Promise<void>;
 }
 
@@ -43,6 +44,37 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return settings[key] || defaultValue;
   };
 
+  const updateSetting = async (key: string, value: string) => {
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          setting_key: key,
+          setting_value: value,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update local settings state immediately
+        setSettings(prev => ({
+          ...prev,
+          [key]: value
+        }));
+        console.log('✅ Setting updated:', key, '=', value);
+      } else {
+        throw new Error(result.message || 'Failed to update setting');
+      }
+    } catch (error) {
+      console.error('❌ Failed to update setting:', error);
+      throw error;
+    }
+  };
+
   const refreshSettings = async () => {
     setIsLoading(true);
     await fetchSettings();
@@ -54,6 +86,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         settings,
         isLoading,
         getSetting,
+        updateSetting,
         refreshSettings,
       }}
     >

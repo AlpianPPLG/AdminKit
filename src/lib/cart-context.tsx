@@ -36,27 +36,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Load cart from localStorage when user changes
   useEffect(() => {
-    if (user) {
-      const savedCart = localStorage.getItem(`cart_${user.id}`);
-      if (savedCart) {
-        try {
-          const cartData = JSON.parse(savedCart);
-          setCartItems(Array.isArray(cartData) ? cartData : []);
-        } catch (error) {
-          console.error('Error parsing cart data:', error);
+    if (typeof window !== 'undefined') {
+      if (user) {
+        const savedCart = localStorage.getItem(`cart_${user.id}`);
+        if (savedCart) {
+          try {
+            const cartData = JSON.parse(savedCart);
+            setCartItems(Array.isArray(cartData) ? cartData : []);
+          } catch (error) {
+            console.error('Error parsing cart data:', error);
+            setCartItems([]);
+          }
+        } else {
           setCartItems([]);
         }
       } else {
         setCartItems([]);
       }
-    } else {
-      setCartItems([]);
     }
   }, [user]);
 
   // Save cart to localStorage when cartItems change
   useEffect(() => {
-    if (user && cartItems.length >= 0) {
+    if (typeof window !== 'undefined' && user && cartItems.length >= 0) {
       localStorage.setItem(`cart_${user.id}`, JSON.stringify(cartItems));
     }
   }, [cartItems, user]);

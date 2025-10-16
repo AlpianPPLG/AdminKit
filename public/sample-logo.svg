@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+  <!-- Background circle -->
+  <circle cx="75" cy="75" r="70" fill="#3B82F6"/>
+  
+  <!-- White letter A -->
+  <text x="75" y="110" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="white" text-anchor="middle">A</text>
+  
+  <!-- Optional: Add small text below -->
+  <text x="75" y="130" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" opacity="0.8">AdminKit</text>
+</svg>

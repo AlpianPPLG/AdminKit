@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ui/theme-provider";
+import { ThemeProvider, SettingsThemeProvider } from "@/components/ui/theme-provider";
 import { AuthProvider } from "@/lib/auth-context";
 import { SettingsProvider } from "@/lib/settings-context";
 import { CartProvider } from "@/lib/cart-context";
@@ -9,6 +9,9 @@ import { WishlistProvider } from "@/lib/wishlist-context";
 import { PaymentMethodProvider } from "@/lib/payment-methods-context";
 import { OrderProvider } from "@/lib/orders-context";
 import { Toaster } from "@/components/ui/sonner";
+import { FaviconProvider } from "@/components/providers/favicon-provider";
+import { MetadataProvider } from "@/components/providers/metadata-provider";
+import { ThemeSyncComponent } from "@/components/providers/theme-sync";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,14 +38,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
+        <SettingsThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AuthProvider>
             <SettingsProvider>
+              <ThemeSyncComponent />
+              <FaviconProvider />
+              <MetadataProvider />
               <CartProvider>
                 <WishlistProvider>
                   <PaymentMethodProvider>
@@ -55,7 +61,7 @@ export default function RootLayout({
               </CartProvider>
             </SettingsProvider>
           </AuthProvider>
-        </ThemeProvider>
+        </SettingsThemeProvider>
       </body>
     </html>
   );

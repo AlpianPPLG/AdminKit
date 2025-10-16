@@ -250,11 +250,35 @@ export function Sidebar({ className }: SidebarProps) {
   };
 
   const siteName = getSetting('site_name', 'AdminKit Pro');
+  const logoUrl = getSetting('logo_url');
+  const [logoError, setLogoError] = useState(false);
+
+  // Reset logo error when logoUrl changes
+  useEffect(() => {
+    setLogoError(false);
+  }, [logoUrl]);
 
   return (
     <div className={cn('flex h-full flex-col bg-card', className)}>
-      <div className="flex h-16 items-center border-b px-6">
-        <h1 className="text-xl font-bold">{siteName}</h1>
+      <div className="flex h-16 items-center border-b px-6 gap-3">
+        {logoUrl && !logoError && (
+          <div className="relative h-10 w-10 flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoUrl}
+              alt={siteName}
+              className="h-full w-full object-contain"
+              onError={() => {
+                console.error('Failed to load logo:', logoUrl);
+                setLogoError(true);
+              }}
+              onLoad={() => {
+                console.log('Logo loaded successfully:', logoUrl);
+              }}
+            />
+          </div>
+        )}
+        <h1 className="text-xl font-bold truncate">{siteName}</h1>
       </div>
       <nav className="flex-1 space-y-2 p-4">
         {navigation.map((item) => (

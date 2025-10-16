@@ -19,27 +19,29 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   // Load wishlist from localStorage when user changes
   useEffect(() => {
-    if (user) {
-      const savedWishlist = localStorage.getItem(`wishlist_${user.id}`);
-      if (savedWishlist) {
-        try {
-          const wishlistData = JSON.parse(savedWishlist);
-          setWishlist(Array.isArray(wishlistData) ? wishlistData : []);
-        } catch (error) {
-          console.error('Error parsing wishlist data:', error);
+    if (typeof window !== 'undefined') {
+      if (user) {
+        const savedWishlist = localStorage.getItem(`wishlist_${user.id}`);
+        if (savedWishlist) {
+          try {
+            const wishlistData = JSON.parse(savedWishlist);
+            setWishlist(Array.isArray(wishlistData) ? wishlistData : []);
+          } catch (error) {
+            console.error('Error parsing wishlist data:', error);
+            setWishlist([]);
+          }
+        } else {
           setWishlist([]);
         }
       } else {
         setWishlist([]);
       }
-    } else {
-      setWishlist([]);
     }
   }, [user]);
 
   // Save wishlist to localStorage when wishlist changes
   useEffect(() => {
-    if (user && wishlist.length >= 0) {
+    if (typeof window !== 'undefined' && user && wishlist.length >= 0) {
       localStorage.setItem(`wishlist_${user.id}`, JSON.stringify(wishlist));
     }
   }, [wishlist, user]);

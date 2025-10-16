@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -18,9 +18,11 @@ import { Setting } from '@/lib/types';
 import { RefreshCw, Shield, User, Globe, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSettings } from '@/lib/settings-context';
+import { useTheme } from 'next-themes';
 
 export default function SettingsPage() {
-  const { refreshSettings } = useSettings();
+  const { refreshSettings, getSetting } = useSettings();
+  const { setTheme } = useTheme();
   const [settings, setSettings] = useState<Setting[]>([]);
   const [, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -77,11 +79,10 @@ export default function SettingsPage() {
     }
   };
 
-  // Get setting value
-  const getSettingValue = (key: string) => {
-    const setting = settings.find(s => s.setting_key === key);
-    return setting?.setting_value || '';
-  };
+  // Get setting value - use settings context for consistency
+  const getSettingValue = useCallback((key: string) => {
+    return getSetting(key, '');
+  }, [getSetting]);
 
   useEffect(() => {
     fetchSettings();
@@ -121,7 +122,31 @@ export default function SettingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
-  // Update setting
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+  
+  // Listen for theme changes from header toggle
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      const newTheme = event.detail.theme;
+      if (newTheme && newTheme !== 'system') {
+        setAppearanceForm(prev => ({
+          ...prev,
+          default_theme: newTheme
+        }));
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('themeChanged', handleThemeChange as EventListener);
+
+      return () => {
+        window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      };
+    }
+  }, []);
+  
   const updateSetting = async (key: string, value: string) => {
     try {
       const response = await fetch('/api/settings', {
@@ -188,11 +213,40 @@ export default function SettingsPage() {
   
   // Handle appearance settings save
   const handleAppearanceSave = async () => {
-    await saveSettings({
-      default_theme: appearanceForm.default_theme,
-      logo_url: appearanceForm.logo_url,
-      favicon_url: appearanceForm.favicon_url,
-    });
+    setIsSaving(true);
+    try {
+      await saveSettings({
+        default_theme: appearanceForm.default_theme,
+        logo_url: appearanceForm.logo_url,
+        favicon_url: appearanceForm.favicon_url,
+      });
+
+      // Apply theme immediately after saving
+      if (appearanceForm.default_theme && appearanceForm.default_theme !== 'system') {
+        setTheme(appearanceForm.default_theme);
+
+        // Also apply theme class to html element for immediate visual feedback
+        if (typeof window !== 'undefined') {
+          const htmlElement = document.documentElement;
+          if (appearanceForm.default_theme === 'dark') {
+            htmlElement.classList.add('dark');
+          } else {
+            htmlElement.classList.remove('dark');
+          }
+
+          // Emit custom event for theme change so other components can listen
+          window.dispatchEvent(new CustomEvent('themeChanged', {
+            detail: { theme: appearanceForm.default_theme }
+          }));
+        }
+      }
+
+      toast.success('Appearance settings saved and theme applied');
+    } catch (error) {
+      toast.error('Failed to save appearance settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   // Handle security settings save
@@ -311,7 +365,6 @@ export default function SettingsPage() {
                       >
                         <option value="light">Light</option>
                         <option value="dark">Dark</option>
-                        <option value="system">System</option>
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -320,8 +373,11 @@ export default function SettingsPage() {
                         id="logo_url"
                         value={appearanceForm.logo_url}
                         onChange={(e) => setAppearanceForm({...appearanceForm, logo_url: e.target.value})}
-                        placeholder="https://example.com/logo.png"
+                        placeholder="/logo.png or https://example.com/logo.png"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Tip: Upload logo ke folder /public dan gunakan path lokal seperti /logo.png
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -330,8 +386,11 @@ export default function SettingsPage() {
                       id="favicon_url"
                       value={appearanceForm.favicon_url}
                       onChange={(e) => setAppearanceForm({...appearanceForm, favicon_url: e.target.value})}
-                      placeholder="https://example.com/favicon.ico"
+                      placeholder="/favicon.ico or https://example.com/favicon.ico"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Tip: Upload favicon ke folder /public dan gunakan path lokal seperti /favicon.ico
+                    </p>
                   </div>
                   <div className="pt-4">
                     <Button onClick={handleAppearanceSave} disabled={isSaving}>

@@ -22,19 +22,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for existing token and user data
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-    if (storedToken && storedUser) {
-      // Decode token payload (client-side)
-      const payload = decodeToken(storedToken);
-      if (payload) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } else {
-        // Token is invalid, clear storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      if (storedToken && storedUser) {
+        // Decode token payload (client-side)
+        const payload = decodeToken(storedToken);
+        if (payload) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } else {
+          // Token is invalid, clear storage
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
     }
     setIsLoading(false);
@@ -43,15 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   };
 
   const isAuthenticated = !!user && !!token;
