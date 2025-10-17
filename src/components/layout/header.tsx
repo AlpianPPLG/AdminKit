@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ interface HeaderProps {
 }
 
 export function Header({ title = 'Dashboard', description }: HeaderProps) {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const { user, logout } = useAuth();
   const { updateSetting, getSetting } = useSettings();
   const router = useRouter();
@@ -240,7 +241,7 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
                   ) : searchQuery.trim() ? (
                     <div className="p-4 text-center">
                       <div className="text-muted-foreground mb-2">
-                        No exact matches for "{searchQuery}"
+                        No exact matches for &quot;{searchQuery}&quot;
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Showing all available results

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Home, Search, FileQuestion } from 'lucide-react';
+import { Home, FileQuestion } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -15,7 +15,7 @@ export default function NotFound() {
           </div>
           <CardTitle className="text-3xl md:text-4xl font-bold">Page Not Found</CardTitle>
           <CardDescription className="text-lg mt-2">
-            Oops! The page you're looking for doesn't exist or has been moved.
+            Oops! The page you&apos;re looking for doesn&apos;t exist or has been moved.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

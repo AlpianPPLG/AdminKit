@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { useSettings } from '@/lib/settings-context';
 
 export function ThemeSyncComponent() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const { getSetting } = useSettings();
 
   useEffect(() => {

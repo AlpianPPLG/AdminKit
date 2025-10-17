@@ -23,7 +23,7 @@ import {
 
 // Admin Dashboard Component
 function AdminDashboard() {
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [overview, setOverview] = useState<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number; avgOrderValue?: number; avgOrderValueChangePct?: number } | null>(null);
   const [charts, setCharts] = useState<{ monthlyRevenue: { month: string; revenue: number }[]; monthlyOrders: { month: string; orders: number }[]; topProducts: { id: string; name: string; price: number; total_sold: number }[] } | null>(null);
 
