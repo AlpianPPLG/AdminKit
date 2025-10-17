@@ -18,7 +18,7 @@ import { useCurrency } from '@/lib/use-currency';
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   stock_quantity: number;
   image_url: string;
@@ -74,7 +74,7 @@ export default function CatalogPage() {
     if (searchTerm) {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -116,7 +116,12 @@ export default function CatalogPage() {
 
     const product = products.find(p => p.id === productId);
     if (product) {
-      addToCart(product);
+      // Ensure description is not null for cart storage
+      const cartProduct = {
+        ...product,
+        description: product.description || 'No description available'
+      };
+      addToCart(cartProduct);
       toast.success('Added to cart');
     }
   };
@@ -283,7 +288,7 @@ export default function CatalogPage() {
                   <div className="space-y-2">
                     <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
                     <CardDescription className="line-clamp-2">
-                      {product.description}
+                      {product.description || 'No description available'}
                     </CardDescription>
                     
                     <div className="flex items-center space-x-2">

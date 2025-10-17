@@ -7,7 +7,7 @@ interface CartItem {
   product: {
     id: string;
     name: string;
-    description: string;
+    description: string | null;
     price: number;
     stock_quantity: number;
     image_url: string;

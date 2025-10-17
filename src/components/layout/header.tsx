@@ -50,12 +50,7 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
 
   const handleSettingsClick = () => {
     if (!user) return;
-    
-    if (user.role === 'CUSTOMER') {
-      router.push('/dashboard/profile');
-    } else {
-      router.push('/dashboard/settings');
-    }
+    router.push('/dashboard/settings');
   };
 
   const handleLogout = () => {
@@ -344,10 +339,12 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSettingsClick}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+              {user?.role !== 'CUSTOMER' && (
+                <DropdownMenuItem onClick={handleSettingsClick}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

@@ -6,7 +6,8 @@ import { KPICard } from '@/components/dashboard/kpi-card';
 import { AnalyticsChart } from '@/components/dashboard/analytics-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { useAuth } from '@/lib/auth-context';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useWishlist } from '@/lib/wishlist-context';
 import {
   Users,
   Package,
@@ -22,11 +23,11 @@ import {
 
 // Admin Dashboard Component
 function AdminDashboard() {
-  const [loading, setLoading] = React.useState(true);
-  const [overview, setOverview] = React.useState<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number; avgOrderValue?: number; avgOrderValueChangePct?: number } | null>(null);
-  const [charts, setCharts] = React.useState<{ monthlyRevenue: { month: string; revenue: number }[]; monthlyOrders: { month: string; orders: number }[]; topProducts: { id: string; name: string; price: number; total_sold: number }[] } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [overview, setOverview] = useState<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number; avgOrderValue?: number; avgOrderValueChangePct?: number } | null>(null);
+  const [charts, setCharts] = useState<{ monthlyRevenue: { month: string; revenue: number }[]; monthlyOrders: { month: string; orders: number }[]; topProducts: { id: string; name: string; price: number; total_sold: number }[] } | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await fetch('/api/dashboard/stats');
@@ -122,6 +123,57 @@ function AdminDashboard() {
 
 // Customer Dashboard Component
 function CustomerDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<{
+    overview: {
+      totalOrders: number;
+      totalSpent: number;
+      paymentMethodsCount: number;
+      profileCompleteness: number;
+      loyaltyPoints: number;
+      spendingChangePct: number;
+    };
+    recentOrders: Array<{
+      id: string;
+      amount: number;
+      status: string;
+      created_at: string;
+      item_count: number;
+    }>;
+  } | null>(null);
+
+  const { getWishlistCount } = useWishlist();
+
+  useEffect(() => {
+    const fetchCustomerStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch('/api/dashboard/customer', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const json = await res.json();
+        if (json?.success) {
+          setDashboardData(json.data);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCustomerStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Message */}
@@ -130,7 +182,7 @@ function CustomerDashboard() {
           Welcome back!
         </h2>
         <p className="text-blue-700 dark:text-blue-300 mt-2">
-          Here&aposs;s what&aposs;s happening with your account today.
+          Here&apos;s what&apos;s happening with your account today.
         </p>
       </div>
 
@@ -138,28 +190,34 @@ function CustomerDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="My Orders"
-          value="12"
-          change={{ value: 2, type: 'increase' }}
+          value={dashboardData?.overview.totalOrders ?? 0}
+          change={{
+            value: Math.abs(dashboardData?.overview.spendingChangePct ?? 0),
+            type: (dashboardData?.overview.spendingChangePct ?? 0) >= 0 ? 'increase' : 'decrease'
+          }}
           icon={ShoppingCart}
           description="Total orders placed"
         />
         <KPICard
           title="Total Spent"
-          value="Rp 2,450,000"
-          change={{ value: 15.3, type: 'increase' }}
+          value={`Rp ${Number(dashboardData?.overview.totalSpent ?? 0).toLocaleString('id-ID')}`}
+          change={{
+            value: Math.abs(dashboardData?.overview.spendingChangePct ?? 0),
+            type: (dashboardData?.overview.spendingChangePct ?? 0) >= 0 ? 'increase' : 'decrease'
+          }}
           icon={DollarSign}
           description="Amount spent this year"
         />
         <KPICard
           title="Wishlist Items"
-          value="8"
-          change={{ value: 1, type: 'increase' }}
+          value={getWishlistCount()}
+          change={{ value: 5, type: 'increase' }}
           icon={Heart}
           description="Items saved for later"
         />
         <KPICard
           title="Payment Methods"
-          value="3"
+          value={dashboardData?.overview.paymentMethodsCount ?? 0}
           change={{ value: 0, type: 'increase' }}
           icon={CreditCard}
           description="Saved payment methods"
@@ -170,7 +228,7 @@ function CustomerDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <KPICard
           title="Recent Orders"
-          value="3"
+          value={dashboardData?.recentOrders.length ?? 0}
           change={{ value: 0, type: 'increase' }}
           icon={History}
           description="Orders in progress"
@@ -178,21 +236,55 @@ function CustomerDashboard() {
         />
         <KPICard
           title="Profile Complete"
-          value="85%"
-          change={{ value: 5, type: 'increase' }}
+          value={`${dashboardData?.overview?.profileCompleteness ?? 0}%`}
+          change={{
+            value: (dashboardData?.overview?.profileCompleteness ?? 0) > 75 ? 5 : -5,
+            type: (dashboardData?.overview?.profileCompleteness ?? 0) > 75 ? 'increase' : 'decrease'
+          }}
           icon={User}
           description="Profile completion"
           className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900"
         />
         <KPICard
           title="Loyalty Points"
-          value="1,250"
-          change={{ value: 50, type: 'increase' }}
+          value={dashboardData?.overview.loyaltyPoints ?? 0}
+          change={{ value: 10, type: 'increase' }}
           icon={TrendingUp}
           description="Available points"
           className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900"
         />
       </div>
+
+      {/* Recent Orders Section */}
+      {dashboardData?.recentOrders && dashboardData.recentOrders.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-4">Recent Orders</h3>
+          <div className="space-y-3">
+            {dashboardData.recentOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div>
+                  <p className="font-medium">Order #{order.id.slice(-8)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {order.item_count} items • {new Date(order.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">Rp {Number(order.amount).toLocaleString('id-ID')}</p>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    order.status === 'COMPLETED'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : order.status === 'PENDING'
+                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
