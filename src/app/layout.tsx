@@ -8,10 +8,12 @@ import { CartProvider } from "@/lib/cart-context";
 import { WishlistProvider } from "@/lib/wishlist-context";
 import { PaymentMethodProvider } from "@/lib/payment-methods-context";
 import { OrderProvider } from "@/lib/orders-context";
+import { NotificationsProvider } from "@/lib/notifications-context";
 import { Toaster } from "@/components/ui/sonner";
 import { FaviconProvider } from "@/components/providers/favicon-provider";
 import { MetadataProvider } from "@/components/providers/metadata-provider";
 import { ThemeSyncComponent } from "@/components/providers/theme-sync";
+import React from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,19 +48,21 @@ export default function RootLayout({
         >
           <AuthProvider>
             <SettingsProvider>
-              <ThemeSyncComponent />
-              <FaviconProvider />
-              <MetadataProvider />
-              <CartProvider>
-                <WishlistProvider>
-                  <PaymentMethodProvider>
-                    <OrderProvider>
-                      {children}
-                      <Toaster />
-                    </OrderProvider>
-                  </PaymentMethodProvider>
-                </WishlistProvider>
-              </CartProvider>
+              <NotificationsProvider>
+                <ThemeSyncComponent />
+                <FaviconProvider />
+                <MetadataProvider />
+                <CartProvider>
+                  <WishlistProvider>
+                    <PaymentMethodProvider>
+                      <OrderProvider>
+                        {children}
+                        <Toaster />
+                      </OrderProvider>
+                    </PaymentMethodProvider>
+                  </WishlistProvider>
+                </CartProvider>
+              </NotificationsProvider>
             </SettingsProvider>
           </AuthProvider>
         </SettingsThemeProvider>

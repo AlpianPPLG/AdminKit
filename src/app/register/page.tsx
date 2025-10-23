@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { createUserSchema } from '@/lib/validations';
-import { Eye, EyeOff, Loader2, Shield, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Shield, CheckCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -104,7 +104,15 @@ export default function RegisterPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4 relative">
+      <div className="absolute left-4 top-4">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-200">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side - Features */}
         <div className="hidden lg:flex flex-col justify-center space-y-8">

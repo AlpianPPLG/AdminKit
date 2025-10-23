@@ -162,15 +162,17 @@ export default function LandingPage() {
             Join thousands of businesses already using AdminKit Pro to streamline their operations.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/register">
-              <Button size="lg" variant="secondary">
+            <Link href="/register" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full">
                 Start Your Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary">
-              Download Brochure
-            </Button>
+            <Link href="#" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full">
+                Download Brochure
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
