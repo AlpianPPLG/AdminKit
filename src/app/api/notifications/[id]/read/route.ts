@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     // Check auth header first
@@ -29,7 +29,12 @@ export async function PUT(
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const notificationId = params.id;
+
+    // Handle params that could be Promise or direct object
+    const resolvedParams = await (context.params instanceof Promise
+      ? context.params
+      : Promise.resolve(context.params));
+    const notificationId = resolvedParams.id;
 
     // Update the notification
     await db.query(
