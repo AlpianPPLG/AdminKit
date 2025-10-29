@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -46,6 +46,8 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(-1);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfileClick = () => {
     if (!user) return;
@@ -140,7 +142,7 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
     }
   };
 
-  const handleResultClick = (result: any) => {
+  const handleResultClick = useCallback((result: any) => {
     setShowResults(false);
     setSearchQuery('');
 
@@ -157,7 +159,7 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
       default:
         break;
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -190,6 +192,60 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
       router.push(link);
     }
   };
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Only trigger if the key is "/" and the user is not typing in an input or textarea
+      if (
+        event.key === "/" &&
+        !["INPUT", "TEXTAREA"].includes((event.target as HTMLElement).tagName)
+      ) {
+        event.preventDefault();
+        const searchInput = document.querySelector<HTMLInputElement>('input[type="search"]');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
+  const handleKeyNavigation = useCallback((e: KeyboardEvent) => {
+    if (!showResults || searchResults.length === 0) return;
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedResultIndex(prevIndex => {
+        if (e.key === 'ArrowDown') {
+          return prevIndex < searchResults.length - 1 ? prevIndex + 1 : 0;
+        } else {
+          return prevIndex > 0 ? prevIndex - 1 : searchResults.length - 1;
+        }
+      });
+    } else if (e.key === 'Enter' && selectedResultIndex >= 0) {
+      e.preventDefault();
+      handleResultClick(searchResults[selectedResultIndex]);
+    } else if (e.key === 'Escape') {
+      setShowResults(false);
+      setSelectedResultIndex(-1);
+      searchInputRef.current?.blur();
+    }
+  }, [showResults, searchResults, selectedResultIndex, handleResultClick]);
+
+  // Add keydown event listener
+  useEffect(() => {
+    if (showResults) {
+      document.addEventListener('keydown', handleKeyNavigation);
+      return () => document.removeEventListener('keydown', handleKeyNavigation);
+    }
+  }, [showResults, searchResults.length, selectedResultIndex, handleKeyNavigation]);
+
+  // Reset selected index when search results change
+  useEffect(() => {
+    setSelectedResultIndex(-1);
+  }, [searchResults]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -274,12 +330,13 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="search"
-                  placeholder="Search..."
+                  placeholder="Press / to search..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     handleSearch(e.target.value).then(r => r);
                   }}
+                  ref={searchInputRef}
                   className="pl-10 pr-4 py-2 w-64 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
 
@@ -296,7 +353,9 @@ export function Header({ title = 'Dashboard', description }: HeaderProps) {
                           <button
                             key={index}
                             onClick={() => handleResultClick(result)}
-                            className="w-full px-4 py-2 text-left hover:bg-muted transition-colors"
+                            className={`w-full px-4 py-2 text-left hover:bg-muted transition-colors ${
+                              selectedResultIndex === index ? 'bg-muted' : ''
+                            }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center text-xs font-medium">

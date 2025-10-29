@@ -13,7 +13,8 @@ import {
   FileText, 
   Settings,
   Shield,
-  Zap} from 'lucide-react';
+  Zap
+} from 'lucide-react';
 
 export default function LandingPage() {
   const features = [
@@ -100,7 +101,7 @@ export default function LandingPage() {
             </span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Streamline your business operations with our comprehensive, modular admin dashboard. 
+            Streamline your business operations with our comprehensive, modular admin dashboard.
             Built for modern teams who demand efficiency, flexibility, and powerful insights.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -140,7 +141,7 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className={`h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4`}>
+                  <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center mb-4">
                     <feature.icon className={`h-6 w-6 ${feature.color}`} />
                   </div>
                   <CardTitle>{feature.title}</CardTitle>
@@ -190,7 +191,7 @@ export default function LandingPage() {
             The ultimate admin dashboard for modern businesses.
           </p>
           <p className="text-sm text-muted-foreground">
-            &copy; 2024 AdminKit Pro. All rights reserved.
+            &copy; {new Date().getFullYear()} AdminKit Pro. All rights reserved.
           </p>
         </div>
       </footer>

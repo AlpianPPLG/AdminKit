@@ -40,7 +40,7 @@ function AdminDashboard() {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchStats().then(r => r);
   }, []);
 
   return (
@@ -163,7 +163,7 @@ function CustomerDashboard() {
         setLoading(false);
       }
     };
-    fetchCustomerStats();
+    fetchCustomerStats().then(r => r);
   }, []);
 
   if (loading) {

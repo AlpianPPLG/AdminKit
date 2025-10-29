@@ -1,5 +1,6 @@
 'use client';
 
+import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
@@ -64,7 +65,7 @@ export default function CatalogPage() {
       }
     };
 
-    fetchProducts();
+    fetchProducts().then(r => r);
   }, []);
 
   // Filter and search products
@@ -148,6 +149,12 @@ export default function CatalogPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Product Catalog | AdminKit Pro</title>
+        <meta name="description" content="Browse our complete product catalog with detailed descriptions and prices" />
+        <meta name="keywords" content="products, catalog, shop, ecommerce" />
+      </Helmet>
+
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white py-12">
         <div className="container mx-auto px-4">

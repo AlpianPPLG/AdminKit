@@ -47,15 +47,16 @@ export default function LoginPage() {
 
       const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Login failed');
+      if (response.ok) {
+        // Update auth context (this will also update localStorage)
+        login(result.token, result.user);
+        toast.success('Login successful!');
+        router.push('/dashboard');
+      } else {
+        const errorMessage = result.message || 'Login failed';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
-
-      // Update auth context (this will also update localStorage)
-      login(result.token, result.user);
-
-      toast.success('Login successful!');
-      router.push('/dashboard');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);

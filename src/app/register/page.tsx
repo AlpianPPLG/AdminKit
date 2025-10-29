@@ -83,7 +83,9 @@ export default function RegisterPage() {
         toast.success('Account created successfully! Please sign in.');
         router.push('/login');
       } else {
-        throw new Error(result.message || 'Registration failed');
+        const errorMessage = result.message || 'Registration failed';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
